@@ -1,5 +1,9 @@
 import { verify } from "jsonwebtoken";
-import { ACCESS_TOKEN_SECRET } from "../services/userService";
+import {
+  ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_SECRET,
+  userService,
+} from "../services/userService";
 import { Request, Response } from "express";
 import { User } from "../types/users";
 import { userServiceHandler } from "../app";
@@ -22,6 +26,20 @@ export async function validateAuth(
   }
   await verify(token, ACCESS_TOKEN_SECRET, async (err, user) => {
     if (err) {
+      res.status(403).send({ message: "Unauthorized" });
+      return false;
+    }
+    let hasRefreshToken = false;
+    userService.refreshTokens.forEach((refreshToken) => {
+      try {
+        const decodedToken = verify(refreshToken, REFRESH_TOKEN_SECRET);
+        hasRefreshToken =
+          (decodedToken as User).username === (user as User).username;
+      } catch (err) {
+        hasRefreshToken = false;
+      }
+    });
+    if (!hasRefreshToken) {
       res.status(403).send({ message: "Unauthorized" });
       return false;
     }

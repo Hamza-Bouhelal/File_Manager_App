@@ -41,8 +41,21 @@ export class userService {
   }
 
   logout(res: Response, token: string) {
+    let user: { username: string };
+    try {
+      user = verify(token, REFRESH_TOKEN_SECRET) as { username: string };
+    } catch {
+      return res.status(403).send({ message: "Invalid token" });
+    }
     userService.refreshTokens = userService.refreshTokens.filter(
-      (t) => t !== token
+      (token: string) => {
+        try {
+          const decodedToken = verify(token, REFRESH_TOKEN_SECRET);
+          return (decodedToken as User).username !== user.username;
+        } catch (error) {
+          return false;
+        }
+      }
     );
     res.status(200).send({ message: "Logged out" });
   }
