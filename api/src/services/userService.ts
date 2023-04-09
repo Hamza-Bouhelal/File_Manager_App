@@ -3,13 +3,12 @@ import sqlite3 from "sqlite3";
 import { User } from "../types/users";
 import { hash, compare } from "bcrypt";
 import { Response } from "express";
-import { defaultErrorHandler } from "../middleware/errorHansler";
 import { sign, verify } from "jsonwebtoken";
 import { fileManagerService } from "./fileManagerService";
 import { allteredRequest } from "../middleware/authValidator";
 
-export const ACCESS_TOKEN_SECRET = "test";
-export const REFRESH_TOKEN_SECRET = "tset";
+export const ACCESS_TOKEN_SECRET = "TSF2b8uYo8bQacrFSGJ7";
+export const REFRESH_TOKEN_SECRET = "HdDCPyDR4cNjdNrJAid2";
 
 function generateAccessToken(user: { username: string }) {
   return sign(user, ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
@@ -70,7 +69,6 @@ export class userService {
         if (err) {
           return console.log(err.message);
         }
-        console.log(`A row has been inserted with rowid ${this.lastID}`);
       }
     );
   }
@@ -111,15 +109,13 @@ export class userService {
   }
 
   async signUp(user: User, res: Response) {
-    await defaultErrorHandler(res, async () => {
-      if (await this.checkExists(user)) {
-        res.status(400).send({ message: "User already exists" });
-      } else {
-        await this.createUser(user);
-        res.status(201).send({ message: "User created", ...auth(user) });
-        fileManagerService.createRootFolder(user.username);
-      }
-    });
+    if (await this.checkExists(user)) {
+      res.status(400).send({ message: "User already exists" });
+    } else {
+      await this.createUser(user);
+      res.status(201).send({ message: "User created", ...auth(user) });
+      fileManagerService.createRootFolder(user.username);
+    }
   }
 
   async userExists(user: User) {
@@ -144,26 +140,23 @@ export class userService {
 
   async deleteUser(req: allteredRequest, res: Response) {
     const { username } = req.user as unknown as User;
-    await defaultErrorHandler(res, async () => {
-      await this.db.run(
-        `DELETE FROM users WHERE username = ?`,
-        [username],
-        function (err) {
-          if (err) {
-            return console.log(err.message);
-          }
-          console.log(`A row has been deleted with rowid ${this.lastID}`);
+    await this.db.run(
+      `DELETE FROM users WHERE username = ?`,
+      [username],
+      function (err) {
+        if (err) {
+          return console.log(err.message);
         }
-      );
-      if (await this.userExists(req.user as unknown as User)) {
-        res
-          .status(400)
-          .send({ message: "Some error occured while deleting the user" });
-      } else {
-        fileManagerService.deleteRootDirectory(username);
-        res.status(200).send({ message: "User deleted" });
       }
-    });
+    );
+    if (await this.userExists(req.user as unknown as User)) {
+      res
+        .status(400)
+        .send({ message: "Some error occured while deleting the user" });
+    } else {
+      fileManagerService.deleteRootDirectory(username);
+      res.status(200).send({ message: "User deleted" });
+    }
   }
 
   async getPassword(username: string) {
@@ -187,18 +180,16 @@ export class userService {
   }
 
   async login(user: User, res: Response) {
-    await defaultErrorHandler(res, async () => {
-      let { username, password } = user;
-      let storedPassword = await this.getPassword(username);
-      if (storedPassword) {
-        if (await compare(password, storedPassword)) {
-          res.status(200).send({ message: "Logged in", ...auth({ username }) });
-        } else {
-          res.status(400).send({ message: "Wrong password" });
-        }
+    let { username, password } = user;
+    let storedPassword = await this.getPassword(username);
+    if (storedPassword) {
+      if (await compare(password, storedPassword)) {
+        res.status(200).send({ message: "Logged in", ...auth({ username }) });
       } else {
-        res.status(400).send({ message: "User does not exist" });
+        res.status(400).send({ message: "Wrong password" });
       }
-    });
+    } else {
+      res.status(400).send({ message: "User does not exist" });
+    }
   }
 }
