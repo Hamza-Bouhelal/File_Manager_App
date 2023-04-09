@@ -84,6 +84,9 @@ const LoginRegisterForm = () => {
     const data = await response.json();
     if (response.status === 201) {
       setToast({ message: data.message, type: ToastType.Success, hide: false });
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("dir", "");
       resetHide();
     } else {
       setToast({ message: data.message, type: ToastType.Error, hide: false });
@@ -112,6 +115,11 @@ const LoginRegisterForm = () => {
     const data = await response.json();
     if (response.status === 200) {
       setToast({ message: data.message, type: ToastType.Success, hide: false });
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("dir", "");
+      //go to /mydrive
+      window.open("/mydrive", "_self");
       resetHide();
     } else {
       setToast({ message: data.message, type: ToastType.Error, hide: false });
