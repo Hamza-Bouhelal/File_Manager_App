@@ -17,8 +17,17 @@ export const fileTextValidator = joi.object({
   content: joi.string().required(),
 });
 
-export const deleteOrReadFileOrFolderValidator = joi.object({
+export const deleteFileOrFolderValidator = joi.object({
   path: joi.string().required(),
+});
+
+export const readDirValidator = joi.object({
+  path: joi.string().allow("").required(),
+});
+
+export const readFileValidator = joi.object({
+  path: joi.string().allow("").required(),
+  file: joi.string().required(),
 });
 
 export const joiBodyValidator = (

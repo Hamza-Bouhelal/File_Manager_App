@@ -28,7 +28,7 @@ function auth(user: { username: string }) {
 
 export class userService {
   static refreshTokens: string[] = [];
-  private db: sqlite3.Database;
+  public db: sqlite3.Database;
 
   constructor() {
     this.db = new sqlite3.Database("./db.sqlite3", (err) => {
@@ -150,18 +150,6 @@ export class userService {
         fileManagerService.deleteRootDirectory(username);
         res.status(200).send({ message: "User deleted" });
       }
-    });
-  }
-
-  async getAllUsers() {
-    return new Promise<User[]>(async (resolve, reject) => {
-      await this.db.all("SELECT * FROM users", [], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(rows as User[]);
-        }
-      });
     });
   }
 
