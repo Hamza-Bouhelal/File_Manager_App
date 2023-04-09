@@ -30,6 +30,11 @@ export const readFileValidator = joi.object({
   file: joi.string().required(),
 });
 
+export const renameValidator = joi.object({
+  path: joi.string().required(),
+  newPath: joi.string().required(),
+});
+
 export const joiBodyValidator = (
   res: Response,
   schema: joi.ObjectSchema,

@@ -141,4 +141,20 @@ export class fileManagerService {
       return { status: 400, message: "File does not exist" };
     }
   }
+
+  static renameFileOrFolder(username: string, path: string, newPath: string) {
+    const fullPath = `./data/${username}/${path}`;
+    const newFullPath = `./data/${username}/${newPath}`;
+    if (fs.existsSync(fullPath)) {
+      try {
+        fs.renameSync(fullPath, newFullPath);
+        return { status: 200, message: "File or folder renamed" };
+      } catch (err) {
+        console.log(err);
+        return { status: 400, message: "Some error occured" };
+      }
+    } else {
+      return { status: 400, message: "File or folder does not exist" };
+    }
+  }
 }

@@ -6,6 +6,7 @@ import {
   joiBodyValidator,
   readDirValidator,
   readFileValidator,
+  renameValidator,
   tokenValidator,
 } from "./middleware/joi";
 import { userService } from "./services/userService";
@@ -32,9 +33,7 @@ app.post("/users/login", async (req, res, next) => {
 
 app.post("/users/refresh", async (req, res, next) => {
   if (!joiBodyValidator(res, tokenValidator, req.body)) return;
-  validateAuth(req as allteredRequest, res, async () => {
-    await userServiceHandler.refreshToken(res, req.body.token);
-  });
+  await userServiceHandler.refreshToken(res, req.body.token);
 });
 
 app.delete("/users/logout", async (req, res, next) => {
@@ -138,6 +137,18 @@ app.post("/users/folders/zip", fileUpload(), async (req, res, next) => {
       (req as allteredRequest).user.username,
       req.body.path,
       req.files as object
+    );
+    res.status(result.status).send({ ...result, status: undefined });
+  });
+});
+
+app.patch("/users/files/", async (req, res, next) => {
+  if (!joiBodyValidator(res, renameValidator, req.body)) return;
+  validateAuth(req as allteredRequest, res, async () => {
+    const result = fileManagerService.renameFileOrFolder(
+      (req as allteredRequest).user.username,
+      req.body.path,
+      req.body.newPath
     );
     res.status(result.status).send({ ...result, status: undefined });
   });
