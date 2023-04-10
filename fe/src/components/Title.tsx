@@ -1,49 +1,48 @@
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from "@material-ui/core/styles";
+import { useEffect, useState } from "react";
 
 const useStyles = makeStyles((theme) => ({
-  titleWrapper: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    padding: '0.5rem 1.5rem',
-    borderRadius: '1rem',
-    overflow: 'hidden',
-    boxShadow: `0 0 1rem ${theme.palette.grey[500]}`,
+  header: {
+    position: "fixed",
+    top: 0,
+    width: "100%",
+    backgroundColor: "#e9edef",
+    color: "#2d2d2d",
+    textAlign: "center",
+    paddingTop: "2rem",
+    paddingBottom: "2rem",
+    boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
+    animation: "$slideDown 0.5s",
+    height: "80px",
+    marginTop: "-40px",
+    zIndex: 99,
   },
-  title: {
-    fontSize: '4rem',
-    fontWeight: 'bold',
-    color: theme.palette.common.black,
-    letterSpacing: '0.2rem',
-    margin: 0,
-    position: 'relative',
+  "@keyframes slideDown": {
+    "0%": {
+      transform: "translateY(-100%)",
+      opacity: 0,
+    },
+    "100%": {
+      transform: "translateY(0)",
+      opacity: 1,
+    },
   },
-  box: {
-    position: 'absolute',
-    top: '-1rem',
-    left: '-1rem',
-    width: 'calc(100% + 2rem)',
-    height: 'calc(100% + 2rem)',
-    borderRadius: '2rem',
-    border: `1rem solid ${theme.palette.grey[100]}`,
-    zIndex: -1,
-  }
 }));
 
-interface TitleProps {
-    text: string;
-}
-
-const Title = (props: TitleProps) => {
+const Title = ({ text }: any) => {
   const classes = useStyles();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   return (
-    <div className={classes.titleWrapper}>
-      <div className={classes.box} />
-      <h1 className={classes.title}>
-        {props.text}
-      </h1>
+    <div
+      className={classes.header}
+      style={{ display: isVisible ? "block" : "none" }}
+    >
+      <h1 style={{ fontSize: "3rem", fontFamily: "Roboto" }}>{text}</h1>
     </div>
   );
 };

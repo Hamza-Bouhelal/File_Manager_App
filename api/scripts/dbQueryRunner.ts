@@ -1,6 +1,6 @@
 import { userService } from "../src/services/userService";
 
-async function runQuery(query: string) {
+async function runQueryAll(query: string) {
   await new userService().db.all(query, [], (err, row) => {
     if (err) {
       console.log(err);
@@ -9,5 +9,10 @@ async function runQuery(query: string) {
     }
   });
 }
+async function runQuery(query: string) {
+  await new userService().db.run(query);
+}
 
-runQuery("SELECT * FROM users");
+/* runQueryAll("SELECT * FROM users"); */
+
+runQuery("DELETE FROM users");

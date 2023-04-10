@@ -1,63 +1,55 @@
 import { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { config } from "../utils/config";
+import Title from "./Title";
+import { addTextFile, refresh } from "../utils/req";
+import { Logout } from "./Logout";
+import CustomButton from "./CustomModal";
+import Toast, { ToastType } from "./utils/Toast";
+
 const useStyles = makeStyles({
-  directory: {
-    fontFamily: "Arial, sans-serif",
-    padding: "20px",
-  },
-  header: {
-    marginTop: 0,
-  },
-  files: {
+  container: {
     display: "flex",
-    flexWrap: "wrap",
+    justifyContent: "center",
+    marginTop: "10px",
   },
-  folders: {
-    display: "flex",
-    flexWrap: "wrap",
+  table: {
+    width: "90%",
+    borderCollapse: "separate",
+    border: "1px solid #ddd",
+    borderRadius: "10px",
+    overflow: "hidden",
   },
-  file: {
-    display: "flex",
-    alignItems: "center",
-    width: "100%",
+  tableHead: {
+    backgroundColor: "#E9EDF1",
+    borderRadius: "10px 10px 0 0",
+    height: "60px",
+    textAlign: "left",
+    paddingLeft: "20px",
+  },
+  tableRow: {
+    backgroundColor: "#FFFFFF",
+    borderBottom: "1px solid #ddd",
+    transition: "background-color 0.2s ease-out",
+    ":hover": {
+      backgroundColor: "#f1f1f1",
+      transition: "background-color 0.5s ease-in-out",
+    },
+  },
+  tableData: {
+    width: "80%",
     padding: "10px",
-    marginBottom: "10px",
-    backgroundColor: "#fff",
-    boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.3)",
   },
-  folder: {
+  cursorPointer: {
+    cursor: "pointer",
+  },
+  buttonGroup: {
     display: "flex",
+    justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
-    padding: "10px",
-    marginBottom: "10px",
-    backgroundColor: "#fff",
-    boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.3)",
-  },
-  fileLink: {
-    color: "#333",
-    textDecoration: "none",
-    fontSize: "16px",
-    fontWeight: 600,
-    marginLeft: "10px",
-  },
-  fileIcon: {
-    marginRight: "10px",
-    fontSize: "24px",
-    color: "#333",
-  },
-  folderLink: {
-    color: "#333",
-    textDecoration: "none",
-    fontSize: "16px",
-    fontWeight: 600,
-    marginLeft: "10px",
-  },
-  folderIcon: {
-    marginRight: "10px",
-    fontSize: "24px",
-    color: "#333",
+    marginTop: "120px",
+    marginLeft: "20px",
+    zIndex: -99,
   },
 });
 
@@ -68,9 +60,19 @@ const Directory = () => {
   const [folders, setFolders] = useState(initArray);
   const directory = "./" + localStorage.getItem("dir") || "";
   const [done, setDone] = useState(false);
+  const [toastOnScreen, setToast] = useState({
+    message: "",
+    type: "success",
+    hide: true,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!(await refresh(localStorage.getItem("refreshToken") as string))) {
+        localStorage.setItem("accessToken", "");
+        localStorage.setItem("refreshToken", "");
+        window.location.href = "/";
+      }
       const response = await fetch(config.backendurl + "/users/folders", {
         method: "POST",
         headers: {
@@ -109,36 +111,103 @@ const Directory = () => {
 
   const File = ({ name }: { name: string }) => {
     return (
-      <div className={classes.file}>
-        <a href="">{name}</a>
+      <div className={classes.cursorPointer}>
+        <tr className={classes.tableRow}>
+          <td className={classes.tableData}>{name}</td>
+        </tr>
       </div>
     );
   };
 
   const Folder = ({ name }: { name: string }) => {
     return (
-      <div className={classes.folder} onClick={handleFolderClick(name)}>
-        <a href="#">{name}</a>
+      <div onClick={handleFolderClick(name)} className={classes.cursorPointer}>
+        <tr className={classes.tableRow}>
+          <td className={classes.tableData}>{name}</td>
+        </tr>
       </div>
     );
   };
 
+  const customAddFile = async (args: any) => {
+    const path = localStorage.getItem("dir") as string;
+    const fileName = args.inputs[0];
+    const fileContent = args.textArea[0];
+    const response = await addTextFile(path, fileName, fileContent);
+    if (response.status === 201) {
+      setToast({
+        message: "File added successfully",
+        type: "success",
+        hide: false,
+      });
+      return true;
+    }
+    {
+      setToast({
+        message:
+          "File could not be added (" +
+          ((await response.json()) as { message: string }).message +
+          ")",
+        type: "error",
+        hide: false,
+      });
+      return false;
+    }
+  };
+
+  const HelperToast = () => {
+    if (toastOnScreen.message !== "" && !toastOnScreen.hide) {
+      return (
+        <Toast
+          message={toastOnScreen.message}
+          type={toastOnScreen.type as ToastType}
+        />
+      );
+    } else {
+      return <div></div>;
+    }
+  };
+
   return (
-    <div className={classes.directory}>
-      <h2 className={classes.header}>Directory: {directory}</h2>
+    <div>
+      <Title text="Safe Drive"></Title>
+      <HelperToast />
+      <Logout />
+      <div className={classes.buttonGroup}>
+        <CustomButton
+          buttonText="Add text file"
+          modalElements={{
+            inputs: ["File Name"],
+            textArea: ["File Content"],
+            filePickers: [],
+          }}
+          handleConfirm={customAddFile}
+        />
+      </div>
       {done ? (
-        <div>
-          {localStorage.getItem("dir") != "" ? <Folder name=".." /> : <div />}
-          <div className={classes.folders}>
-            {folders.map((folder) => (
-              <Folder name={folder.name} />
-            ))}
-          </div>
-          <div className={classes.files}>
-            {files.map((file) => (
-              <File name={file.name} />
-            ))}
-          </div>
+        <div className={classes.container}>
+          <table className={classes.table}>
+            <thead>
+              <tr>
+                <th colSpan={2} className={classes.tableHead}>
+                  {directory}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {localStorage.getItem("dir") != "" ? (
+                <Folder name=".." />
+              ) : (
+                <div />
+              )}
+              {folders.map((folder) => (
+                <Folder name={folder.name} />
+              ))}
+              {files.map((file) => (
+                <File name={file.name} />
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <div>Loading...</div>

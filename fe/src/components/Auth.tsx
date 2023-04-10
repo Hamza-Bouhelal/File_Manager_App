@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import {
   Tabs,
@@ -11,31 +11,27 @@ import {
 import Title from "./Title";
 import { config } from "../utils/config";
 import Toast, { ToastType } from "./utils/Toast";
+import { refresh } from "../utils/req";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
     minHeight: "100vh",
     backgroundColor: theme.palette.background.paper,
     marginTop: "-100px",
   },
   formContainer: {
+    display: "block",
+    marginLeft: "auto",
+    marginRight: "auto",
+    marginTop: "250px",
     width: "400px",
     padding: theme.spacing(3),
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: "5px",
     backgroundColor: theme.palette.background.paper,
     boxShadow: theme.shadows[5],
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
   },
   form: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
     marginTop: theme.spacing(5),
   },
   textField: {
@@ -44,6 +40,9 @@ const useStyles = makeStyles((theme) => ({
   },
   submitButton: {
     margin: theme.spacing(3, 0, 2),
+    bottom: "5%",
+    left: "50%",
+    transform: "translateX(-50%)",
   },
 }));
 
@@ -126,6 +125,21 @@ const LoginRegisterForm = () => {
       resetHide();
     }
   };
+
+  useEffect(() => {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (!refreshToken || refreshToken == "") return;
+    const fetchData = async () => {
+      const refreshed = await refresh(refreshToken);
+      if (refreshed) {
+        window.open("/mydrive", "_self");
+      } else {
+        localStorage.setItem("accessToken", "");
+        localStorage.setItem("refreshToken", "");
+      }
+    };
+    fetchData();
+  }, []);
 
   const HelperToast = () => {
     if (toastOnScreen.message !== "" && !toastOnScreen.hide) {

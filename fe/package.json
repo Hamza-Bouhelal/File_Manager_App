@@ -11,6 +11,7 @@
     "@types/node": "^16.18.23",
     "@types/react": "^18.0.33",
     "@types/react-dom": "^18.0.11",
+    "buffer": "^6.0.3",
     "mdb-react-ui-kit": "^6.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -21,6 +22,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "deps:force": "npm i --force",
     "start:https": "set HTTPS=true&&npm start",
     "start": "react-scripts start",
     "build": "react-scripts build",
