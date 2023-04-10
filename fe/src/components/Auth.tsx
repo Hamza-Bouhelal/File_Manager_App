@@ -10,8 +10,9 @@ import {
 } from "@material-ui/core";
 import Title from "./Title";
 import { config } from "../utils/config";
-import Toast, { ToastType } from "./utils/Toast";
+import { ToastType } from "./utils/Toast";
 import { refresh } from "../utils/req";
+import { setToast } from "../App";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,11 +52,7 @@ const LoginRegisterForm = () => {
   const [tabValue, setTabValue] = useState(0);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [toastOnScreen, setToast] = useState({
-    message: "",
-    type: "success",
-    hide: true,
-  });
+
   const handleInputChange = (event: any) => {
     const { name, value } = event.target;
     if (name === "username") {
@@ -86,6 +83,7 @@ const LoginRegisterForm = () => {
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("dir", "");
+      window.open("/mydrive", "_self");
       resetHide();
     } else {
       setToast({ message: data.message, type: ToastType.Error, hide: false });
@@ -141,23 +139,9 @@ const LoginRegisterForm = () => {
     fetchData();
   }, []);
 
-  const HelperToast = () => {
-    if (toastOnScreen.message !== "" && !toastOnScreen.hide) {
-      return (
-        <Toast
-          message={toastOnScreen.message}
-          type={toastOnScreen.type as ToastType}
-        />
-      );
-    } else {
-      return <div></div>;
-    }
-  };
-
   return (
     <div>
       <Title text="Safe Drive" />
-      <HelperToast />
       <div className={classes.root}>
         <div className={classes.formContainer}>
           <Tabs value={tabValue} onChange={handleTabChange} centered>

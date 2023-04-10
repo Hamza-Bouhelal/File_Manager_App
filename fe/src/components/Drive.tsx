@@ -5,7 +5,7 @@ import Title from "./Title";
 import { addTextFile, refresh } from "../utils/req";
 import { Logout } from "./Logout";
 import CustomButton from "./CustomModal";
-import Toast, { ToastType } from "./utils/Toast";
+import { setToast } from "../App";
 
 const useStyles = makeStyles({
   container: {
@@ -60,32 +60,29 @@ const Directory = () => {
   const [folders, setFolders] = useState(initArray);
   const directory = "./" + localStorage.getItem("dir") || "";
   const [done, setDone] = useState(false);
-  const [toastOnScreen, setToast] = useState({
-    message: "",
-    type: "success",
-    hide: true,
-  });
+
+  const fetchData = async () => {
+    setDone(false);
+    if (!(await refresh(localStorage.getItem("refreshToken") as string))) {
+      localStorage.setItem("accessToken", "");
+      localStorage.setItem("refreshToken", "");
+      window.location.href = "/";
+    }
+    const response = await fetch(config.backendurl + "/users/folders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("accessToken"),
+      },
+      body: JSON.stringify({ path: localStorage.getItem("dir") }),
+    });
+    const data = await response.json();
+    setFiles(data.files.map((file: string) => ({ name: file })));
+    setFolders(data.folders.map((folder: string) => ({ name: folder })));
+    setDone(true);
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!(await refresh(localStorage.getItem("refreshToken") as string))) {
-        localStorage.setItem("accessToken", "");
-        localStorage.setItem("refreshToken", "");
-        window.location.href = "/";
-      }
-      const response = await fetch(config.backendurl + "/users/folders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("accessToken"),
-        },
-        body: JSON.stringify({ path: localStorage.getItem("dir") }),
-      });
-      const data = await response.json();
-      setFiles(data.files.map((file: string) => ({ name: file })));
-      setFolders(data.folders.map((folder: string) => ({ name: folder })));
-      setDone(true);
-    };
     fetchData();
   }, []);
 
@@ -140,6 +137,7 @@ const Directory = () => {
         type: "success",
         hide: false,
       });
+      fetchData();
       return true;
     }
     {
@@ -155,23 +153,9 @@ const Directory = () => {
     }
   };
 
-  const HelperToast = () => {
-    if (toastOnScreen.message !== "" && !toastOnScreen.hide) {
-      return (
-        <Toast
-          message={toastOnScreen.message}
-          type={toastOnScreen.type as ToastType}
-        />
-      );
-    } else {
-      return <div></div>;
-    }
-  };
-
   return (
     <div>
       <Title text="Safe Drive"></Title>
-      <HelperToast />
       <Logout />
       <div className={classes.buttonGroup}>
         <CustomButton
