@@ -151,7 +151,6 @@ const LoginRegisterForm = () => {
           <Box p={3}>
             {tabValue === 0 && (
               <Box>
-                <Typography variant="h6"></Typography>
                 <form className={classes.form} noValidate>
                   <TextField
                     id="login-username"
@@ -187,7 +186,6 @@ const LoginRegisterForm = () => {
             )}
             {tabValue === 1 && (
               <Box>
-                <Typography variant="h6"></Typography>
                 <form className={classes.form} noValidate>
                   <TextField
                     id="register-username"

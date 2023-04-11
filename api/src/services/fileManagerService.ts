@@ -23,7 +23,7 @@ export class fileManagerService {
     fileName: string,
     content: any
   ) {
-    const path = `./data/${username}${filePath}/`;
+    const path = `./data/${username}/${filePath}`;
     if (!fs.existsSync(path)) {
       return { status: 400, message: "Path does not exist" };
     }
@@ -65,6 +65,7 @@ export class fileManagerService {
       fs.mkdirSync(fullPath);
       return { status: 201, message: "Folder created" };
     }
+    console.log(path);
     return { status: 400, message: "Folder already exists" };
   }
 
@@ -73,14 +74,37 @@ export class fileManagerService {
     const filesNotCreated: string[] = [];
     const createdFiles: string[] = [];
     const fullPath = `./data/${username}/${path}`;
-    for (const [key, value] of Object.entries(files)) {
-      const filePath = (fullPath + "/" + key).replace(/\/\//g, "/");
-      if (fs.existsSync(filePath)) {
-        filesNotCreated.push(key);
+    const toIterate = Object.entries(files);
+    for (const [key, value] of toIterate) {
+      if (value.length) {
+        value.forEach((file: any) => {
+          const filePath = (fullPath + "/" + file.name).replace(/\/\//g, "/");
+          try {
+            if (fs.existsSync(filePath)) {
+              filesNotCreated.push(file.name);
+            } else {
+              fs.writeFileSync(filePath, file.data);
+              createdFiles.push(file.name);
+            }
+          } catch {
+            filesNotCreated.push(key);
+          }
+        });
       } else {
-        fs.writeFileSync(filePath, value.data);
-        createdFiles.push(key);
+        const filePath = (fullPath + "/" + value.name).replace(/\/\//g, "/");
+        try {
+          if (fs.existsSync(filePath)) {
+            filesNotCreated.push(key);
+          } else {
+            fs.writeFileSync(filePath, value.data);
+            createdFiles.push(key);
+          }
+        } catch {
+          filesNotCreated.push(key);
+        }
       }
+
+      break;
     }
     return {
       status: filesNotCreated.length > 0 ? 400 : 201,
@@ -124,7 +148,17 @@ export class fileManagerService {
     if (key != "file") {
       return { status: 400, message: "Place you zip file under 'file'" };
     }
+    if (!value.name.endsWith(".zip"))
+      return { status: 400, message: "File is not a zip file" };
+    const pathWithZip = fullPath + "/" + value.name.replace(".zip", "");
+    if (fs.existsSync(pathWithZip)) {
+      return {
+        status: 400,
+        message: "Folder with same name exists in this directory",
+      };
+    }
     try {
+      console.log(value);
       decompress(value.data, fullPath);
       return { status: 201, message: "Content from zip file Was added" };
     } catch (error) {

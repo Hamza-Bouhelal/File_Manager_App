@@ -18,13 +18,6 @@ function generateRefreshToken(user: { username: string }) {
   return sign(user, REFRESH_TOKEN_SECRET);
 }
 
-function auth(user: { username: string }) {
-  const accessToken = generateAccessToken(user);
-  const refreshToken = generateRefreshToken(user);
-  userService.refreshTokens.push(refreshToken);
-  return { accessToken, refreshToken };
-}
-
 export class userService {
   static refreshTokens: string[] = [];
   public db: sqlite3.Database;
@@ -39,7 +32,50 @@ export class userService {
     });
   }
 
-  logout(res: Response, token: string) {
+  async pullRefreshTokens() {
+    await this.db.all("SELECT * FROM refreshTokens", [], (err, row) => {
+      if (err) {
+        console.log(err);
+      } else {
+        if (row.length)
+          userService.refreshTokens = row.map((row: any) => row.token);
+      }
+    });
+  }
+
+  async auth(user: { username: string }) {
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    userService.refreshTokens.push(refreshToken);
+    await this.addRefreshTokenToDb(refreshToken);
+    return { accessToken, refreshToken };
+  }
+
+  async addRefreshTokenToDb(token: string) {
+    await this.db.run(
+      `INSERT INTO refreshTokens(token) VALUES(?)`,
+      [token],
+      function (err) {
+        if (err) {
+          return console.log(err.message);
+        }
+      }
+    );
+  }
+
+  async deleteRefreshTokenFromDb(token: string) {
+    await this.db.run(
+      `DELETE FROM refreshTokens WHERE token = ?`,
+      [token],
+      function (err) {
+        if (err) {
+          return console.log(err.message);
+        }
+      }
+    );
+  }
+
+  async logout(res: Response, token: string) {
     let user: { username: string };
     try {
       user = verify(token, REFRESH_TOKEN_SECRET) as { username: string };
@@ -47,9 +83,12 @@ export class userService {
       return res.status(403).send({ message: "Invalid token" });
     }
     userService.refreshTokens = userService.refreshTokens.filter(
-      (token: string) => {
+      async (token: string) => {
         try {
           const decodedToken = verify(token, REFRESH_TOKEN_SECRET);
+          if ((decodedToken as User).username !== user.username) {
+            await this.deleteRefreshTokenFromDb(token);
+          }
           return (decodedToken as User).username !== user.username;
         } catch (error) {
           return false;
@@ -113,7 +152,9 @@ export class userService {
       res.status(400).send({ message: "User already exists" });
     } else {
       await this.createUser(user);
-      res.status(201).send({ message: "User created", ...auth(user) });
+      res
+        .status(201)
+        .send({ message: "User created", ...(await this.auth(user)) });
       fileManagerService.createRootFolder(user.username);
     }
   }
@@ -154,8 +195,14 @@ export class userService {
         .status(400)
         .send({ message: "Some error occured while deleting the user" });
     } else {
-      fileManagerService.deleteRootDirectory(username);
-      res.status(200).send({ message: "User deleted" });
+      try {
+        fileManagerService.deleteRootDirectory(username);
+        res.status(200).send({ message: "User deleted" });
+      } catch (error) {
+        res
+          .status(400)
+          .send({ message: "Some error occured while deleting the user" });
+      }
     }
   }
 
@@ -184,7 +231,9 @@ export class userService {
     let storedPassword = await this.getPassword(username);
     if (storedPassword) {
       if (await compare(password, storedPassword)) {
-        res.status(200).send({ message: "Logged in", ...auth({ username }) });
+        res
+          .status(200)
+          .send({ message: "Logged in", ...(await this.auth({ username })) });
       } else {
         res.status(400).send({ message: "Wrong password" });
       }

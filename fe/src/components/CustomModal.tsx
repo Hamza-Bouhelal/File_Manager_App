@@ -4,16 +4,17 @@ import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
   button: {
-    borderRadius: 20,
+    borderRadius: 10,
     color: "#000",
     backgroundColor: "#fff",
-    fontSize: 16,
-    fontWeight: 600,
-    padding: "10px 25px",
+    border: "2px solid #e0e0e0",
+    fontSize: 14,
+    fontWeight: 400,
+    padding: "5px 10px",
+    marginLeft: "10px",
     transition: "all 0.3s ease",
     "&:hover": {
-      backgroundColor: "#000",
-      color: "#fff",
+      backgroundColor: "#e0e0e0",
     },
   },
   modal: {
@@ -28,20 +29,16 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2, 4, 3),
     display: "flex",
     flexDirection: "column",
-    maxWidth: 400,
-  },
-  input: {
-    margin: theme.spacing(1),
+    width: "50vw",
   },
   buttonGroup: {
     display: "flex",
     justifyContent: "flex-end",
     marginTop: theme.spacing(2),
+    paddingLeft: "50px",
   },
-  cancelButton: {
-    color: "#000",
-    border: "2px solid #000",
-    marginLeft: theme.spacing(1),
+  left: {
+    left: 0,
   },
   filePicker: {
     display: "flex",
@@ -58,6 +55,11 @@ const useStyles = makeStyles((theme) => ({
     margin: "8px 0",
     resize: "none",
   },
+  title: {
+    fontSize: "1.5rem",
+    fontWeight: 500,
+    marginBottom: "1rem",
+  },
 }));
 
 interface ModalProps {
@@ -72,14 +74,22 @@ interface ModalProps {
     textArea: string[];
     filePickers: FormData[];
   }) => Promise<boolean>;
+  displayButton?: boolean;
+  alwaysOpen?: boolean;
+  onCancel?: () => void;
+  filePickerMultiple?: boolean;
 }
 
 const ModalComponent = ({
   buttonText,
   modalElements,
   handleConfirm,
+  displayButton = true,
+  alwaysOpen = false,
+  filePickerMultiple = false,
+  onCancel = () => {},
 }: ModalProps) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(alwaysOpen);
   const defaultValue = {
     inputs: modalElements.inputs.map(() => "") || [],
     textArea: (modalElements as any).textArea.map(() => "") || [],
@@ -98,7 +108,8 @@ const ModalComponent = ({
   };
 
   const handleClose = () => {
-    setOpen(false);
+    if (!alwaysOpen) setOpen(false);
+    onCancel();
   };
 
   const handleInputChange = (about: "textArea" | "inputs") => {
@@ -125,13 +136,27 @@ const ModalComponent = ({
     modalElements.inputs.map((label, index) => (
       <TextField
         key={index}
-        className={classes.input}
         label={label}
         variant="outlined"
         name={index.toString()}
         onChange={handleInputChange("inputs")}
       />
     ));
+
+  const filePickerOnChange = (index: number) => {
+    return (event: any) => {
+      const files = event.target.files as FileList;
+      const data = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        data.append("file", files[i]);
+      }
+      setValues((prevValues) => {
+        const newValues = { ...prevValues };
+        newValues.filePickers[index] = data;
+        return newValues;
+      });
+    };
+  };
 
   const renderFilePickers = () =>
     modalElements.filePickers &&
@@ -143,24 +168,24 @@ const ModalComponent = ({
         >
           {label}
         </label>
-        <input
-          id={`filePicker${index}`}
-          type="file"
-          accept={fileType}
-          className={classes.filePicker}
-          onChange={(event) => {
-            const files = event.target.files as FileList;
-            const data = new FormData();
-            for (let i = 0; i < files.length; i++) {
-              data.append(i.toString(), files[i]);
-            }
-            setValues((prevValues) => {
-              const newValues = { ...prevValues };
-              newValues.filePickers[index] = data;
-              return newValues;
-            });
-          }}
-        />
+        {filePickerMultiple ? (
+          <input
+            id={`filePicker${index}`}
+            type="file"
+            accept={fileType}
+            className={classes.filePicker}
+            onChange={filePickerOnChange(index)}
+            multiple
+          />
+        ) : (
+          <input
+            id={`filePicker${index}`}
+            type="file"
+            accept={fileType}
+            className={classes.filePicker}
+            onChange={filePickerOnChange(index)}
+          />
+        )}
       </div>
     ));
 
@@ -181,24 +206,28 @@ const ModalComponent = ({
 
   return (
     <>
-      <Button className={classes.button} onClick={handleOpen}>
-        {buttonText}
-      </Button>
+      {displayButton && (
+        <Button className={classes.button} onClick={handleOpen}>
+          {buttonText}
+        </Button>
+      )}
       <Modal className={classes.modal} open={open} onClose={handleClose}>
         <div className={classes.paper}>
+          <div className={classes.title}>
+            <h2>{buttonText}</h2>
+          </div>
           {renderInputs()}
           {renderFilePickers()}
           {renderTextAreas()}
           <div className={classes.buttonGroup}>
             <Button
-              variant="contained"
-              color="primary"
-              onClick={handleConfirmClick}
+              className={classes.button + " " + classes.left}
+              onClick={handleClose}
             >
-              Confirm
-            </Button>
-            <Button variant="contained" color="secondary" onClick={handleClose}>
               Cancel
+            </Button>
+            <Button className={classes.button} onClick={handleConfirmClick}>
+              Confirm
             </Button>
           </div>
         </div>

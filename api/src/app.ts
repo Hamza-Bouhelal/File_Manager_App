@@ -20,6 +20,8 @@ import { defaultErrorHandler } from "./middleware/errorHansler";
 
 var app = express();
 export const userServiceHandler = new userService();
+userServiceHandler.pullRefreshTokens();
+
 app.use(express.json());
 app.use(cors());
 var HTTP_PORT = 8000;
@@ -48,7 +50,7 @@ app.post("/users/refresh", async (req, res, next) => {
 app.delete("/users/logout", async (req, res, next) => {
   await defaultErrorHandler(res, async () => {
     if (!joiBodyValidator(res, tokenValidator, req.body)) return;
-    userServiceHandler.logout(res, req.body.token);
+    await userServiceHandler.logout(res, req.body.token);
   });
 });
 

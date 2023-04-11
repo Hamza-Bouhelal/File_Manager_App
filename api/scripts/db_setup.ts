@@ -11,6 +11,9 @@ async function setupDb() {
     await new userService().db.run(
       "CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT)"
     );
+    await new userService().db.run(
+      "CREATE TABLE refreshTokens (id INTEGER PRIMARY KEY AUTOINCREMENT, token TEXT)"
+    );
   }
 }
 

@@ -4,7 +4,9 @@ import LoginRegisterForm from "./components/Auth";
 import Directory from "./components/Drive";
 import React, { useState } from "react";
 import Toast, { ToastType } from "./components/utils/Toast";
+import BurgerMenu from "./components/BurgerMenu";
 export let setToast: any;
+
 function App() {
   const arr = useState({
     message: "",

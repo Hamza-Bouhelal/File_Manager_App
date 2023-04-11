@@ -13,19 +13,8 @@ const useStyles = makeStyles((theme) => ({
     paddingBottom: "2rem",
     boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
     animation: "$slideDown 0.5s",
-    height: "80px",
-    marginTop: "-40px",
+    height: "100px",
     zIndex: 99,
-  },
-  "@keyframes slideDown": {
-    "0%": {
-      transform: "translateY(-100%)",
-      opacity: 0,
-    },
-    "100%": {
-      transform: "translateY(0)",
-      opacity: 1,
-    },
   },
 }));
 
@@ -42,7 +31,11 @@ const Title = ({ text }: any) => {
       className={classes.header}
       style={{ display: isVisible ? "block" : "none" }}
     >
-      <h1 style={{ fontSize: "3rem", fontFamily: "Roboto" }}>{text}</h1>
+      <h1
+        style={{ fontSize: "3rem", fontFamily: "Roboto", marginTop: "-20px" }}
+      >
+        {text}
+      </h1>
     </div>
   );
 };
