@@ -167,7 +167,7 @@ export class fileManagerService {
   }
 
   static readBufferFile(username: string, path: string, filename: string) {
-    const fullPath = `./data/${username}${path}/${filename}`;
+    const fullPath = `./data/${username}/${path}${filename}`;
     if (fs.existsSync(fullPath)) {
       const buffer = fs.readFileSync(fullPath);
       return { status: 200, buffer };

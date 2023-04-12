@@ -104,22 +104,28 @@ app.post("/users/files/text/read", async (req, res, next) => {
   });
 });
 
-app.post("/users/files/buffer/read", async (req, res, next) => {
+app.get("/users/files/buffer/read", async (req, res, next) => {
+  req.body = req.query;
+  const token = req.body.token;
   await defaultErrorHandler(res, async () => {
-    if (!joiBodyValidator(res, readFileValidator, req.body)) return;
-    validateAuth(req as allteredRequest, res, async () => {
-      const result = fileManagerService.readBufferFile(
-        (req as allteredRequest).user.username,
-        req.body.path,
-        req.body.file
-      );
-      res
-        .status(result.status)
-        .set("Content-Type", mime.lookup(req.body.file) || "text/plain")
-        .send(
-          result.status == 200 ? result.buffer : { message: result.message }
+    validateAuth(
+      req as allteredRequest,
+      res,
+      async () => {
+        const result = fileManagerService.readBufferFile(
+          (req as allteredRequest).user.username,
+          req.body.path,
+          req.body.file
         );
-    });
+        res
+          .status(result.status)
+          .set("Content-Type", mime.lookup(req.body.file) || "text/plain")
+          .send(
+            result.status == 200 ? result.buffer : { message: result.message }
+          );
+      },
+      token
+    );
   });
 });
 

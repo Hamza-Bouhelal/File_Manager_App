@@ -4,7 +4,7 @@ import LoginRegisterForm from "./components/Auth";
 import Directory from "./components/Drive";
 import React, { useState } from "react";
 import Toast, { ToastType } from "./components/utils/Toast";
-import BurgerMenu from "./components/BurgerMenu";
+import Title from "./components/Title";
 export let setToast: any;
 
 function App() {
@@ -31,6 +31,7 @@ function App() {
 
   return (
     <div>
+      <Title text="Safe Drive"></Title>
       <HelperToast />
       <Routes>
         <Route path="/" element={<LoginRegisterForm />} />

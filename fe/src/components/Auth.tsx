@@ -141,7 +141,6 @@ const LoginRegisterForm = () => {
 
   return (
     <div>
-      <Title text="Safe Drive" />
       <div className={classes.root}>
         <div className={classes.formContainer}>
           <Tabs value={tabValue} onChange={handleTabChange} centered>

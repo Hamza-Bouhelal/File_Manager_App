@@ -15,11 +15,12 @@ export interface allteredRequest extends Request {
 export async function validateAuth(
   req: allteredRequest,
   res: Response,
-  call: () => Promise<void>
+  call: () => Promise<void>,
+  tokenFromQuery?: string
 ) {
   const authHeader = (req.headers as unknown as { authorization: string })
     .authorization;
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = tokenFromQuery || (authHeader && authHeader.split(" ")[1]);
   if (token == null) {
     res.status(401).send({ message: "Unauthorized" });
     return false;

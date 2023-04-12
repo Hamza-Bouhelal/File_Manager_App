@@ -168,6 +168,21 @@ const Directory = () => {
     };
   };
 
+  const handleFileClick = (name: string) => {
+    const path = localStorage.getItem("dir");
+    const accessToken = localStorage.getItem("accessToken");
+    window.open(
+      config.backendurl +
+        "/users/files/buffer/read?path=" +
+        path +
+        "&file=" +
+        name +
+        "&token=" +
+        accessToken,
+      "_blank"
+    );
+  };
+
   function shortenString(str: string): string {
     if (str.length > 20) {
       return str.slice(0, 20) + "...";
@@ -179,7 +194,10 @@ const Directory = () => {
     return (
       <div className={classes.cursorPointer}>
         <tr className={classes.tableRow}>
-          <td className={classes.tableData}>
+          <td
+            className={classes.tableData}
+            onClick={() => handleFileClick(name)}
+          >
             <span style={{ display: "flex" }}>
               <FileIcon />
               <div style={{ marginLeft: "10px" }}>{shortenString(name)}</div>
@@ -320,7 +338,6 @@ const Directory = () => {
 
   return (
     <div>
-      <Title text="Safe Drive"></Title>
       <Logout />
       {done ? (
         <div>

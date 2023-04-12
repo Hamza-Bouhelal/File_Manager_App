@@ -19,8 +19,9 @@ async function runQuery(query: string) {
   });
 }
 
-/* runQueryAll("SELECT * FROM users"); */
+runQuery("DELETE FROM refreshTokens");
 
-runQuery(
+/* runQuery(
   "CREATE TABLE refreshTokens (id INTEGER PRIMARY KEY AUTOINCREMENT, token TEXT)"
 );
+ */
