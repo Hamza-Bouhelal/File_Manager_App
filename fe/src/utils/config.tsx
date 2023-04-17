@@ -1,5 +1,5 @@
 export const config = {
-  backendurl: "http://192.168.0.198:8000",
+  backendurl: "http://192.168.0.229:8000",
 };
 
 export const readableExtensions = [
