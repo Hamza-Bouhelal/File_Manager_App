@@ -223,9 +223,11 @@ const Directory = () => {
               </div>
             </span>
           </td>
-          <div className={classes.burgerMenu}>
-            <BurgerMenu fileName={name} last={last} />
-          </div>
+          {name != ". ." && (
+            <div className={classes.burgerMenu}>
+              <BurgerMenu fileName={name} last={last} />
+            </div>
+          )}
         </tr>
       </div>
     );
